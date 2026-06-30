@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Khảo sát nội bộ — Phối hợp với team PM</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --surface:#ffffff; --ink:#15233b; --muted:#5d6b80;
+    --line:#e3e8ef; --accent:#107a6b; --accent-soft:#e6f2ef;
+    --warn:#b4541f; --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:680px; margin:0 auto; padding:32px 20px 64px}
+  header.hero{
+    background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--radius); padding:28px 26px; margin-bottom:20px;
+  }
+  .eyebrow{font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--accent); font-weight:700; margin:0 0 8px}
+  h1{font-size:23px; line-height:1.28; margin:0 0 6px; font-weight:800; letter-spacing:-.01em}
+  .duration{font-size:13px; color:var(--muted); margin:0 0 14px}
+  .intro{color:var(--muted); font-size:14.5px; margin:0}
+  .intro b{color:var(--ink)}
+  .meta{margin-top:16px; padding-top:14px; border-top:1px solid var(--line);
+    font-size:13px; color:var(--muted)}
+
+  .card{background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--radius); padding:22px 24px; margin-bottom:14px}
+  .qnum{font-size:12px; font-weight:700; color:var(--accent); letter-spacing:.04em}
+  .qtext{font-size:16px; font-weight:650; margin:4px 0 16px}
+  .qhint{font-weight:400; color:var(--muted); font-size:13.5px; display:block; margin-top:3px}
+  .req{color:var(--warn)}
+  .section-label{font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--muted); font-weight:700; margin:24px 4px 10px}
+
+  /* likert */
+  .likert{display:flex; gap:6px}
+  .likert label{flex:1}
+  .likert input{position:absolute; opacity:0; pointer-events:none}
+  .likert span{display:flex; align-items:center; justify-content:center; height:46px;
+    border:1px solid var(--line); border-radius:10px; cursor:pointer; font-size:16px;
+    font-weight:600; color:var(--muted); transition:.12s}
+  .likert input:checked + span{background:var(--accent); border-color:var(--accent); color:#fff}
+  .likert input:focus-visible + span{outline:2px solid var(--accent); outline-offset:2px}
+  .scale-ends{display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-top:7px}
+
+  /* checkbox list */
+  .opts{display:grid; gap:8px}
+  .opt{display:flex; align-items:flex-start; gap:11px; padding:11px 13px;
+    border:1px solid var(--line); border-radius:10px; cursor:pointer; font-size:14.5px; transition:.12s}
+  .opt input{margin-top:2px; width:17px; height:17px; accent-color:var(--accent); flex:none}
+  .opt:has(input:checked){border-color:var(--accent); background:var(--accent-soft)}
+  .maxnote{font-size:12.5px; color:var(--muted); margin-top:9px}
+  .maxnote.hit{color:var(--warn); font-weight:600}
+
+  /* text inputs */
+  input[type=text], textarea{width:100%; border:1px solid var(--line); border-radius:10px;
+    padding:12px 13px; font-size:14.5px; font-family:inherit; color:var(--ink); background:#fff}
+  input[type=text]:focus, textarea:focus{outline:none; border-color:var(--accent)}
+  textarea{min-height:96px; resize:vertical}
+  .other-in{margin-top:9px; display:none}
+  .other-in.show{display:block}
+
+  .submit{width:100%; margin-top:8px; padding:15px; border:none; border-radius:12px;
+    background:var(--ink); color:#fff; font-size:16px; font-weight:700; cursor:pointer; transition:.15s}
+  .submit:hover{background:#0e1a2e}
+  .submit:disabled{opacity:.55; cursor:default}
+  .err{color:var(--warn); font-size:13.5px; margin-top:10px; display:none}
+  .err.show{display:block}
+
+  /* thank you */
+  .done{display:none; text-align:center; padding:56px 26px}
+  .done.show{display:block}
+  .done .tick{width:56px; height:56px; border-radius:50%; background:var(--accent-soft);
+    color:var(--accent); display:flex; align-items:center; justify-content:center;
+    font-size:30px; margin:0 auto 18px}
+  .done h2{margin:0 0 8px; font-size:21px}
+  .done p{color:var(--muted); margin:0}
+
+  @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <form id="surveyForm">
+    <header class="hero">
+      <p class="eyebrow">Khảo sát nội bộ</p>
+      <h1>Trải nghiệm phối hợp với team Project Management (PM)</h1>
+      <p class="duration">Thời lượng: ~3 phút · 7 câu</p>
+      <p class="intro">Thu thập phản hồi để cải thiện cách team PM phối hợp với các team, <b>không dùng để đánh giá KPI</b>.</p>
+      <p class="meta">Khảo sát không thu thập thông tin định danh, kết quả tổng hợp dạng thống kê.</p>
+    </header>
+
+    <div class="section-label">Phần 0 — Phân loại</div>
+
+    <!-- 0.1 -->
+    <div class="card">
+      <div class="qnum">0.1</div>
+      <div class="qtext">Game/dự án bạn đang thực hiện khảo sát <span class="req">*</span></div>
+      <input type="text" name="game" placeholder="Ví dụ: ZSM, Metal, TLVNG…" autocomplete="off">
+    </div>
+
+    <div class="section-label">Phần 1 — Đánh giá &nbsp;·&nbsp; 1 = Rất không đồng ý · 5 = Rất đồng ý</div>
+
+    <!-- Q1–Q5 likert generated -->
+    <div id="likertHost"></div>
+
+    <div class="section-label">Phần 2 — Chẩn đoán &amp; góp ý</div>
+
+    <!-- Q6 -->
+    <div class="card">
+      <div class="qnum">Q6</div>
+      <div class="qtext">Điểm nghẽn lớn nhất khi phối hợp với PM là gì?
+        <span class="qhint">Chọn tối đa 3 <span class="req">*</span></span></div>
+      <div class="opts" id="q6opts"></div>
+      <div class="maxnote" id="q6note">Đã chọn 0/3</div>
+      <input type="text" class="other-in" id="q6other" placeholder="Ghi rõ điểm nghẽn khác…" autocomplete="off">
+    </div>
+
+    <!-- Q7 -->
+    <div class="card">
+      <div class="qnum">Q7</div>
+      <div class="qtext">Nếu được đổi một điều khi làm việc với PM, bạn muốn đổi gì? Vì sao? <span class="req">*</span></div>
+      <textarea name="q7" placeholder="Viết thẳng thắn — đây là phần giúp ích nhất cho việc cải thiện."></textarea>
+    </div>
+
+    <button type="submit" class="submit" id="submitBtn">Gửi phản hồi</button>
+    <div class="err" id="errBox">Vui lòng hoàn thành các câu có dấu <span class="req">*</span> trước khi gửi.</div>
+  </form>
+
+  <div class="done" id="doneBox">
+    <div class="tick">✓</div>
+    <h2>Đã ghi nhận. Cảm ơn bạn!</h2>
+    <p>Phản hồi của bạn sẽ được tổng hợp để rà lại cách phối hợp giữa các team.</p>
+  </div>
+
+</div>
+
+<script>
+  // ====== DÁN URL WEB APP CỦA BẠN VÀO ĐÂY (xem hướng dẫn trong chat) ======
+  const WEB_APP_URL = "DAN_URL_WEB_APP_VAO_DAY";
+  // ========================================================================
+
+  const likertQs = [
+    ["Q1","PM phản hồi yêu cầu của team nhanh và kịp thời."],
+    ["Q2","Khi có vấn đề, PM cùng thảo luận hướng đến giải pháp, không chỉ chuyển lời."],
+    ["Q3","PM hiểu game vừa đủ rõ để phối hợp tốt."],
+    ["Q4","PM cảnh báo trước các rủi ro, không đợi đến trễ hạn mới nói."],
+    ["Q5","PM làm đúng những gì đã hứa (việc, deadline)."]
+  ];
+  const host = document.getElementById("likertHost");
+  likertQs.forEach(([id,text])=>{
+    const c=document.createElement("div"); c.className="card";
+    let scale="";
+    for(let i=1;i<=5;i++){
+      scale+=`<label><input type="radio" name="${id}" value="${i}"><span>${i}</span></label>`;
+    }
+    c.innerHTML=`<div class="qnum">${id}</div>
+      <div class="qtext">${text} <span class="req">*</span></div>
+      <div class="likert">${scale}</div>
+      <div class="scale-ends"><span>1 · Rất không đồng ý</span><span>Rất đồng ý · 5</span></div>`;
+    host.appendChild(c);
+  });
+
+  const NO_ISSUE = "Không có nghẽn đáng kể";
+  const q6list=[
+    "Phản hồi chậm",
+    "Thông tin bị thiếu/sai khi chuyển tiếp",
+    "Thiếu quy trình và hướng dẫn rõ ràng",
+    "Có quy trình nhưng không được tuân thủ",
+    "Tốn thời gian giải thích nhiều lần khi đưa request",
+    "Rủi ro không được báo trước",
+    NO_ISSUE,
+    "Khác"
+  ];
+  const q6host=document.getElementById("q6opts");
+  q6list.forEach(v=>{
+    const l=document.createElement("label"); l.className="opt";
+    l.innerHTML=`<input type="checkbox" name="q6" value="${v}"><span>${v}</span>`;
+    q6host.appendChild(l);
+  });
+
+  const q6boxes=[...document.querySelectorAll('input[name=q6]')];
+  const q6note=document.getElementById("q6note");
+  const q6other=document.getElementById("q6other");
+  const MAX=3;
+  q6boxes.forEach(b=>b.addEventListener("change",()=>{
+    // "Không có nghẽn đáng kể" loại trừ các lựa chọn khác
+    if(b.value===NO_ISSUE && b.checked){
+      q6boxes.forEach(x=>{ if(x.value!==NO_ISSUE) x.checked=false; });
+    } else if(b.checked){
+      const no=q6boxes.find(x=>x.value===NO_ISSUE); if(no) no.checked=false;
+    }
+    // chặn quá 3
+    if(q6boxes.filter(x=>x.checked).length>MAX){ b.checked=false; }
+
+    const cnt=q6boxes.filter(x=>x.checked).length;
+    q6note.textContent=`Đã chọn ${cnt}/${MAX}`;
+    q6note.classList.toggle("hit",cnt>=MAX);
+    q6other.classList.toggle("show",
+      q6boxes.find(x=>x.value==="Khác")?.checked);
+  }));
+
+  const form=document.getElementById("surveyForm");
+  const errBox=document.getElementById("errBox");
+  const btn=document.getElementById("submitBtn");
+
+  form.addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    errBox.classList.remove("show");
+
+    const game=form.game.value.trim();
+    const likert={}; let likertOk=true;
+    likertQs.forEach(([id])=>{
+      const v=form.querySelector(`input[name=${id}]:checked`);
+      likert[id]=v?v.value:""; if(!v) likertOk=false;
+    });
+    const q6sel=q6boxes.filter(x=>x.checked).map(x=>x.value);
+    const q7=form.q7.value.trim();
+
+    if(!game || !likertOk || q6sel.length===0 || !q7){
+      errBox.classList.add("show");
+      errBox.scrollIntoView({behavior:"smooth",block:"center"});
+      return;
+    }
+
+    const payload={
+      timestamp:new Date().toISOString(),
+      game,
+      ...likert,
+      q6:q6sel.join(" | "),
+      q6_other:q6other.value.trim(),
+      q7
+    };
+
+    btn.disabled=true; btn.textContent="Đang gửi…";
+    try{
+      await fetch(WEB_APP_URL,{
+        method:"POST",
+        headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify(payload)
+      });
+    }catch(err){ /* CORS/mạng — vẫn ghi server-side; báo thành công lạc quan */ }
+
+    document.getElementById("surveyForm").style.display="none";
+    document.getElementById("doneBox").classList.add("show");
+    window.scrollTo({top:0,behavior:"smooth"});
+  });
+</script>
+</body>
+</html>
